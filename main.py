@@ -103,7 +103,7 @@ class hybird_videos_analysis(Star):
         """Helper function to create a node with consistent format"""
         return Node(
             uin=event.get_self_id(),
-            name="astrbot",
+            name="mimicry",
             content=content
         )
 
@@ -1131,14 +1131,16 @@ async def auto_parse_bili(self, event: AstrMessageEvent, *args, **kwargs):
                 f"📜 视频标题：{result.get('title', '未知标题')}\n"
                 f"👀 观看次数：{result.get('view_count', 0)}\n"
                 f"👍 点赞次数：{result.get('like_count', 0)}\n"
-                f"💰 投币次数：{result.get('coin_count', 0)}\n"
-                f"📂 收藏次数：{result.get('favorite_count', 0)}\n"
-                f"💬 弹幕量：{result.get('danmaku_count', 0)}\n"
+                f"🪙 投币次数：{result.get('coin_count', 0)}\n"
+                f"⭐ 收藏次数：{result.get('favorite_count', 0)}\n"
+                f"↩️ 分享次数：{result.get('share_count', 0)}\n"
+                f"💭 弹幕量：{result.get('danmaku_count', 0)}\n"
+                f"💬 评论数：{result.get('comment_count', 0)}\n"
                 f"⏳ 视频时长：{int(result.get('duration', 0) / 60)}分{result.get('duration', 0) % 60}秒\n"
             )
             if url_mode:
                 info_text += f"🎥 视频直链：{result.get('direct_url', '无')}\n"
-            info_text += f"🧷 原始链接：https://www.bilibili.com/video/{result.get('bvid', 'unknown')}"
+            # info_text += f"🧷 原始链接：https://www.bilibili.com/video/{result.get('bvid', 'unknown')}"
         except Exception as e:
             logger.error(f"构建B站信息文本时出错: {e}")
             info_text = f"B站视频信息获取失败: {result.get('title', '未知视频')}"

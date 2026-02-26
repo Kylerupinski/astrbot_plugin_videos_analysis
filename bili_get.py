@@ -54,9 +54,9 @@ def format_number(num):
     if num < 1e4:
         return str(num)
     elif num < 1e8:
-        return f"{num/1e4:.1f}万"
+        return f"{num/1e4:.1f}万 ({str(num)})"
     else:
-        return f"{num/1e8:.1f}亿"
+        return f"{num/1e8:.1f}亿 ({str(num)})"
 
 def av2bv(av):
     """AV号转BV号"""
@@ -220,7 +220,9 @@ async def parse_video(bvid):
             "like": format_number(info["stat"]["like"]),
             "danmaku": format_number(info["stat"]["danmaku"]),
             "coin": format_number(info["stat"]["coin"]),
-            "favorite": format_number(info["stat"]["favorite"])
+            "favorite": format_number(info["stat"]["favorite"]),
+            "share": format_number(info["stat"]["share"]),
+            "reply": format_number(info["stat"]["reply"])
         }
     }
 
@@ -700,6 +702,8 @@ async def process_bili_video(url, download_flag=True, quality=80, use_login=True
             "danmaku_count": stats.get("danmaku", 0),
             "coin_count": stats.get("coin", 0),
             "favorite_count": stats.get("favorite", 0),
+            "share_count": stats.get("share", 0),
+            "comment_count": stats.get("reply", 0),
             "bvid": bvid,
         }
 
@@ -773,6 +777,8 @@ async def process_bili_video(url, download_flag=True, quality=80, use_login=True
                 "danmaku_count": stats["danmaku"],
                 "coin_count": stats["coin"],
                 "favorite_count": stats["favorite"],
+                "share_count": stats["share"],
+                "comment_count": stats["reply"],
                 "bvid": video_info["bvid"],
             }
         else:
@@ -788,6 +794,8 @@ async def process_bili_video(url, download_flag=True, quality=80, use_login=True
                 "danmaku_count": stats["danmaku"],
                 "coin_count": stats["coin"],
                 "favorite_count": stats["favorite"],
+                "share_count": stats["share"],
+                "comment_count": stats["reply"],
                 "bvid": video_info["bvid"],
             }
 
