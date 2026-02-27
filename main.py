@@ -1127,8 +1127,10 @@ async def auto_parse_bili(self, event: AstrMessageEvent, *args, **kwargs):
 
         # 构建信息文本，加入错误处理
         try:
-            info_text = (
+            info_header = (
                 f"📜 视频标题：{result.get('title', '未知标题')}\n"
+            )
+            info_text = (
                 f"👀 观看次数：{result.get('view_count', 0)}\n"
                 f"👍 点赞次数：{result.get('like_count', 0)}\n"
                 f"🪙 投币次数：{result.get('coin_count', 0)}\n"
@@ -1140,7 +1142,10 @@ async def auto_parse_bili(self, event: AstrMessageEvent, *args, **kwargs):
             )
             if url_mode:
                 info_text += f"🎥 视频直链：{result.get('direct_url', '无')}\n"
-            # info_text += f"🧷 原始链接：https://www.bilibili.com/video/{result.get('bvid', 'unknown')}"
+            # info_text += f"🧷 原始链接：https://www.bilibili.com/video/{result.get('bvid', 'unknown')}\n"
+            info_desc = (
+                f"📄 视频简介：{result.get('desc', '无')}\n"
+            )
         except Exception as e:
             logger.error(f"构建B站信息文本时出错: {e}")
             info_text = f"B站视频信息获取失败: {result.get('title', '未知视频')}"
@@ -1156,53 +1161,59 @@ async def auto_parse_bili(self, event: AstrMessageEvent, *args, **kwargs):
         # 根据回复模式构建响应，视频单独发送提高稳定性
         send_chain = []
         if reply_mode == 0: # 纯文本
-            send_chain = [Comp.Plain(info_text)]
+            send_chain = [Comp.Plain(info_header + info_text + info_desc)]
         elif reply_mode == 1: # 带图片
             cover_url = result.get("cover")
             if cover_url:
                 if zhuanfa:
                     # 合并转发模式
                     ns = Nodes([])
+                    ns.nodes.append(self._create_node(event, [Comp.Plain(info_header)]))
                     ns.nodes.append(self._create_node(event, [Comp.Image.fromURL(cover_url)]))
                     ns.nodes.append(self._create_node(event, [Comp.Plain(info_text)]))
+                    ns.nodes.append(self._create_node(event, [Comp.Plain(info_desc)]))
                     send_chain = [ns]
                 else:
                     # 分别发送
                     await event.send(MessageChain([Comp.Image.fromURL(cover_url)]))
-                    send_chain = [Comp.Plain(info_text)]
+                    send_chain = [Comp.Plain(info_header + info_text + info_desc)]
             else:
-                send_chain = [Comp.Plain("封面图片获取失败\n" + info_text)]
+                send_chain = [Comp.Plain("封面图片获取失败\n" + info_header + info_text + info_desc)]
         elif reply_mode == 2: # 带视频
             if media_component:
                 if zhuanfa:
                     # 合并转发模式，但视频单独发送
-                    await event.send(MessageChain([Comp.Plain(info_text)]))
+                    await event.send(MessageChain([Comp.Plain(info_header + info_text + info_desc)]))
                     send_chain = [media_component]
                 else:
                     # 分别发送
                     send_chain = [media_component]
             else:
-                send_chain = [Comp.Plain(info_text)]
+                send_chain = [Comp.Plain(info_header + info_text + info_desc)]
         elif reply_mode == 3: # 完整
             cover_url = result.get("cover")
             if zhuanfa:
                 # 合并转发模式，视频单独发送
                 if cover_url:
                     ns = Nodes([])
+                    ns.nodes.append(self._create_node(event, [Comp.Plain(info_header)]))
                     ns.nodes.append(self._create_node(event, [Comp.Image.fromURL(cover_url)]))
                     ns.nodes.append(self._create_node(event, [Comp.Plain(info_text)]))
+                    ns.nodes.append(self._create_node(event, [Comp.Plain(info_desc)]))
                     await event.send(MessageChain([ns]))
                 else:
-                    await event.send(MessageChain([Comp.Plain("封面图片获取失败\n" + info_text)]))
+                    await event.send(MessageChain([Comp.Plain("封面图片获取失败\n" + info_header + info_text + info_desc)]))
                 # 视频单独发送
                 send_chain = [media_component]
             else:
                 # 分别发送所有内容
+                await event.send(MessageChain([Comp.Plain(info_header)]))
                 if cover_url:
                     await event.send(MessageChain([Comp.Image.fromURL(cover_url)]))
                 else:
                     await event.send(MessageChain([Comp.Plain("封面图片获取失败")]))
                 await event.send(MessageChain([Comp.Plain(info_text)]))
+                await event.send(MessageChain([Comp.Plain(info_desc)]))
                 send_chain = [media_component]
         elif reply_mode == 4: # 仅视频
             if media_component:
